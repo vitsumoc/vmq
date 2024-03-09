@@ -1,4 +1,4 @@
-package vmq
+package packets
 
 import (
 	"errors"
