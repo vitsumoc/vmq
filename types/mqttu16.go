@@ -5,6 +5,10 @@ import (
 	"io"
 )
 
+func NewU16() *MQTT_U16 {
+	return &MQTT_U16{}
+}
+
 func (mu16 *MQTT_U16) FromStream(input io.Reader) (*MQTT_U16, int, error) {
 	err := binary.Read(input, binary.BigEndian, &mu16.data)
 	if err != nil {

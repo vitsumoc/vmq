@@ -5,6 +5,10 @@ import (
 	"io"
 )
 
+func NewByte() *MQTT_BYTE {
+	return &MQTT_BYTE{}
+}
+
 func (mb *MQTT_BYTE) FromStream(input io.Reader) (*MQTT_BYTE, int, error) {
 	err := binary.Read(input, binary.BigEndian, &mb.data)
 	if err != nil {

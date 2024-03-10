@@ -6,6 +6,12 @@ import (
 	"io"
 )
 
+const MQTT_UTF_8_MAX = 65535 // 0xFFFF
+
+func NewUtf8() *MQTT_UTF8 {
+	return &MQTT_UTF8{}
+}
+
 func (mutf8 *MQTT_UTF8) FromStream(input io.Reader) (*MQTT_UTF8, int, error) {
 	err := binary.Read(input, binary.BigEndian, &mutf8.len.data)
 	if err != nil {
@@ -32,7 +38,7 @@ func (mutf8 *MQTT_UTF8) ToStream(output io.Writer) (int, error) {
 }
 
 func (mutf8 *MQTT_UTF8) FromValue(s string) (*MQTT_UTF8, error) {
-	if len(s) > 65535 {
+	if len(s) > MQTT_UTF_8_MAX {
 		return nil, errors.New("MQTT_UTF8 length error")
 	}
 	mutf8.len.data = uint16(len(s))

@@ -5,6 +5,10 @@ import (
 	"io"
 )
 
+func NewU32() *MQTT_U32 {
+	return &MQTT_U32{}
+}
+
 func (mu32 *MQTT_U32) FromStream(input io.Reader) (*MQTT_U32, int, error) {
 	err := binary.Read(input, binary.BigEndian, &mu32.data)
 	if err != nil {
