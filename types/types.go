@@ -1,7 +1,14 @@
 package types
 
-// all types defined in MQTT standard
+import "io"
 
+type MQTT_TYPE interface {
+	Length() int
+	FromStream(io.Reader) (int, error)
+	ToStream(io.Writer) (int, error)
+}
+
+// all types defined in MQTT standard
 type MQTT_BYTE struct {
 	data byte
 }

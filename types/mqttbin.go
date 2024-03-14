@@ -12,17 +12,17 @@ func NewBin() *MQTT_BIN {
 	return &MQTT_BIN{}
 }
 
-func (mbin *MQTT_BIN) FromStream(input io.Reader) (*MQTT_BIN, int, error) {
+func (mbin *MQTT_BIN) FromStream(input io.Reader) (int, error) {
 	err := binary.Read(input, binary.BigEndian, &mbin.len.data)
 	if err != nil {
-		return nil, 0, err
+		return 0, err
 	}
 	mbin.data = make([]byte, mbin.len.data)
 	err = binary.Read(input, binary.BigEndian, mbin.data)
 	if err != nil {
-		return nil, 0, err
+		return 0, err
 	}
-	return mbin, 2 + int(mbin.len.data), nil
+	return mbin.Length(), nil
 }
 
 func (mbin *MQTT_BIN) ToStream(output io.Writer) (int, error) {
@@ -34,7 +34,7 @@ func (mbin *MQTT_BIN) ToStream(output io.Writer) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	return 2 + int(mbin.len.data), nil
+	return mbin.Length(), nil
 }
 
 func (mbin *MQTT_BIN) FromValue(bs []byte) (*MQTT_BIN, error) {
@@ -48,4 +48,8 @@ func (mbin *MQTT_BIN) FromValue(bs []byte) (*MQTT_BIN, error) {
 
 func (mbin *MQTT_BIN) ToValue() []byte {
 	return mbin.data
+}
+
+func (mbin *MQTT_BIN) Length() int {
+	return mbin.len.Length() + len(mbin.data)
 }

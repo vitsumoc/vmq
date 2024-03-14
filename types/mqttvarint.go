@@ -11,10 +11,12 @@ const (
 )
 
 func NewVarInt() *MQTT_VAR_INT {
-	return &MQTT_VAR_INT{}
+	return &MQTT_VAR_INT{
+		data: []byte{0x00},
+	}
 }
 
-func (mvi *MQTT_VAR_INT) FromStream(input io.Reader) (*MQTT_VAR_INT, int, error) {
+func (mvi *MQTT_VAR_INT) FromStream(input io.Reader) (int, error) {
 	mvi.data = make([]byte, 0)
 	buf := make([]byte, 1)
 	x := 0
@@ -22,25 +24,25 @@ func (mvi *MQTT_VAR_INT) FromStream(input io.Reader) (*MQTT_VAR_INT, int, error)
 	for ; x < 4; x++ {
 		_, err := input.Read(buf)
 		if err != nil {
-			return nil, x, err
+			return x, err
 		}
 		b := buf[0]
 		// height byte can't be 0
 		if x > 0 && b == 0 {
-			return nil, x, errors.New("MQTT_VAR_INT read error")
+			return x, errors.New("MQTT_VAR_INT read error")
 		}
 		mvi.data = append(mvi.data, b)
 		// is there after
 		if b&0x80 > 0 {
 			if x == 3 {
-				return nil, x, errors.New("MQTT_VAR_INT read error, length > 4")
+				return x, errors.New("MQTT_VAR_INT read error, length > 4")
 			}
 			continue
 		}
 		// over
 		break
 	}
-	return mvi, x + 1, nil
+	return mvi.Length(), nil
 }
 
 func (mvi *MQTT_VAR_INT) ToStream(output io.Writer) (int, error) {
@@ -78,4 +80,8 @@ func (mvi *MQTT_VAR_INT) ToValue() int {
 		multiplier *= 0x80
 	}
 	return value
+}
+
+func (mvi *MQTT_VAR_INT) Length() int {
+	return len(mvi.data)
 }

@@ -12,17 +12,17 @@ func NewUtf8() *MQTT_UTF8 {
 	return &MQTT_UTF8{}
 }
 
-func (mutf8 *MQTT_UTF8) FromStream(input io.Reader) (*MQTT_UTF8, int, error) {
+func (mutf8 *MQTT_UTF8) FromStream(input io.Reader) (int, error) {
 	err := binary.Read(input, binary.BigEndian, &mutf8.len.data)
 	if err != nil {
-		return nil, 0, err
+		return 0, err
 	}
 	mutf8.data = make([]byte, mutf8.len.data)
 	err = binary.Read(input, binary.BigEndian, mutf8.data)
 	if err != nil {
-		return nil, 0, err
+		return 0, err
 	}
-	return mutf8, 2 + int(mutf8.len.data), nil
+	return mutf8.Length(), nil
 }
 
 func (mutf8 *MQTT_UTF8) ToStream(output io.Writer) (int, error) {
@@ -34,7 +34,7 @@ func (mutf8 *MQTT_UTF8) ToStream(output io.Writer) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	return 2 + int(mutf8.len.data), nil
+	return mutf8.Length(), nil
 }
 
 func (mutf8 *MQTT_UTF8) FromValue(s string) (*MQTT_UTF8, error) {
@@ -48,4 +48,8 @@ func (mutf8 *MQTT_UTF8) FromValue(s string) (*MQTT_UTF8, error) {
 
 func (mutf8 *MQTT_UTF8) ToValue() string {
 	return string(mutf8.data)
+}
+
+func (mutf8 *MQTT_UTF8) Length() int {
+	return mutf8.len.Length() + len(mutf8.data)
 }

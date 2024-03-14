@@ -14,12 +14,14 @@ func TestTypes(t *testing.T) {
 	// 01 MQTT_BYTE from streams
 	reader_1 := bytes.NewReader(testBytes)
 	// expect 0x01 1 nil
-	b_1_1, n, err := NewByte().FromStream(reader_1)
+	b_1_1 := NewByte()
+	n, err := b_1_1.FromStream(reader_1)
 	if b_1_1.data != 0x01 || n != 1 || err != nil {
 		t.Error()
 	}
 	// expect 0x02 1 nil
-	b_1_2, n, err := NewByte().FromStream(reader_1)
+	b_1_2 := NewByte()
+	n, err = b_1_2.FromStream(reader_1)
 	if b_1_2.data != 0x02 || n != 1 || err != nil {
 		t.Error()
 	}
@@ -40,12 +42,14 @@ func TestTypes(t *testing.T) {
 	// 03 MQTT_U16 from stream
 	reader_3 := bytes.NewReader(testBytes)
 	// expect 258 2 nil
-	u16_3_1, n, err := NewU16().FromStream(reader_3)
+	u16_3_1 := NewU16()
+	n, err = u16_3_1.FromStream(reader_3)
 	if u16_3_1.data != 258 || n != 2 || err != nil {
 		t.Error()
 	}
 	// expect 772 2 nil
-	u16_3_2, n, err := NewU16().FromStream(reader_3)
+	u16_3_2 := NewU16()
+	n, err = u16_3_2.FromStream(reader_3)
 	if u16_3_2.data != 772 || n != 2 || err != nil {
 		t.Error()
 	}
@@ -68,12 +72,14 @@ func TestTypes(t *testing.T) {
 	// 05 MQTT_U32 from stream
 	reader_5 := bytes.NewReader(testBytes)
 	// expect 16909060 4 nil
-	u32_5_1, n, err := NewU32().FromStream(reader_5)
+	u32_5_1 := NewU32()
+	n, err = u32_5_1.FromStream(reader_5)
 	if u32_5_1.data != 16909060 || n != 4 || err != nil {
 		t.Error()
 	}
 	// expect 2442302356 4 nil
-	u32_5_2, n, err := NewU32().FromStream(reader_5)
+	u32_5_2 := NewU32()
+	n, err = u32_5_2.FromStream(reader_5)
 	if u32_5_2.data != 2442302356 || n != 4 || err != nil {
 		t.Error()
 	}
@@ -112,7 +118,8 @@ func TestTypes(t *testing.T) {
 	}
 
 	// 09 MQTT_UTF8 from stream
-	utf8_9, n, err := NewUtf8().FromStream(buffer_8)
+	utf8_9 := NewUtf8()
+	n, err = utf8_9.FromStream(buffer_8)
 	// expect nil 12 hello MQTT
 	if err != nil || n != 12 || utf8_9.ToValue() != testString1 {
 		t.Error()
@@ -143,7 +150,8 @@ func TestTypes(t *testing.T) {
 
 	// 12 MQTT_UTF8_PARI from stream
 	reader_12 := bytes.NewReader(expect_11)
-	up_12, n, err := NewUtf8Pair().FromStream(reader_12)
+	up_12 := NewUtf8Pair()
+	n, err = up_12.FromStream(reader_12)
 	// expect nil, testString1, testString2
 	if err != nil || n != len(expect_11) || up_12.key.ToValue() != testString1 || up_12.value.ToValue() != testString2 {
 		t.Error()
@@ -157,35 +165,40 @@ func TestVarInt(t *testing.T) {
 	// varInt from stream
 	// expect [0x01] 1 nil
 	reader_1 := bytes.NewReader(testBytes)
-	mvi_1, n, err := NewVarInt().FromStream(reader_1)
+	mvi_1 := NewVarInt()
+	n, err := mvi_1.FromStream(reader_1)
 	if len(mvi_1.data) != 1 || mvi_1.data[0] != 0x01 || n != 1 || err != nil {
 		t.Error()
 	}
 
 	// expect length error
 	reader_2 := bytes.NewReader(testBytes[4:])
-	_, _, err = NewVarInt().FromStream(reader_2)
+	mvi_2 := NewVarInt()
+	_, err = mvi_2.FromStream(reader_2)
 	if err == nil {
 		t.Error()
 	}
 
 	// expect [0x94, 0x95, 0x96, 0x07] 4 nil
 	reader_3 := bytes.NewReader(testBytes[7:])
-	mvi_3, n, err := NewVarInt().FromStream(reader_3)
+	mvi_3 := NewVarInt()
+	n, err = mvi_3.FromStream(reader_3)
 	if len(mvi_3.data) != 4 || mvi_3.data[0] != 0x94 || mvi_3.data[3] != 0x07 || n != 4 || err != nil {
 		t.Error()
 	}
 
 	// expect EOF error
 	reader_4 := bytes.NewReader(testBytes[11:])
-	_, _, err = NewVarInt().FromStream(reader_4)
+	mvi_4 := NewVarInt()
+	_, err = mvi_4.FromStream(reader_4)
 	if err == nil {
 		t.Error()
 	}
 
 	// expect height byte can't be 0 err
 	reader_5 := bytes.NewReader(testBytes_2)
-	_, _, err = NewVarInt().FromStream(reader_5)
+	mvi_5 := NewVarInt()
+	_, err = mvi_5.FromStream(reader_5)
 	if err == nil {
 		t.Error()
 	}
@@ -244,7 +257,8 @@ func TestVarInt(t *testing.T) {
 
 	// expect [0x01] nil
 	reader_12 := bytes.NewReader(testToStream_1)
-	mvi_12, _, _ := NewVarInt().FromStream(reader_12)
+	mvi_12 := NewVarInt()
+	mvi_12.FromStream(reader_12)
 	buffer := bytes.NewBuffer(nil)
 	n, err = mvi_12.ToStream(buffer)
 	if len(buffer.Bytes()) != 1 || buffer.Bytes()[0] != 0x01 || n != 1 || err != nil {
@@ -253,7 +267,8 @@ func TestVarInt(t *testing.T) {
 
 	// expect [0x94, 0x95, 0x96, 0x07] nil
 	reader_13 := bytes.NewReader(testToStream_2)
-	mvi_13, _, _ := NewVarInt().FromStream(reader_13)
+	mvi_13 := NewVarInt()
+	mvi_13.FromStream(reader_13)
 	buffer_2 := bytes.NewBuffer(nil)
 	n, err = mvi_13.ToStream(buffer_2)
 	if len(buffer_2.Bytes()) != 4 || buffer_2.Bytes()[0] != 0x94 ||
@@ -268,7 +283,8 @@ func TestVarInt(t *testing.T) {
 
 	// expect 1
 	reader_14 := bytes.NewReader(testToValue_1)
-	mvi_14, _, _ := NewVarInt().FromStream(reader_14)
+	mvi_14 := NewVarInt()
+	mvi_14.FromStream(reader_14)
 	v := mvi_14.ToValue()
 	if v != 1 {
 		t.Error()
@@ -276,7 +292,8 @@ func TestVarInt(t *testing.T) {
 
 	// expect 15043220
 	reader_15 := bytes.NewReader(testToValue_2)
-	mvi_15, _, _ := NewVarInt().FromStream(reader_15)
+	mvi_15 := NewVarInt()
+	mvi_15.FromStream(reader_15)
 	v = mvi_15.ToValue()
 	// 0x14 * 128^0 + 0x15 * 128^1 + 0x16 * 128^2 + 0x07 * 128^3
 	if v != 15043220 {
@@ -291,7 +308,8 @@ func TestBin(t *testing.T) {
 	// 01 from stream
 	// expect nil, 5, [0x01, 0x02, 0x03]
 	reader_1 := bytes.NewReader(testBytes_1)
-	bin_1, n, err := NewBin().FromStream(reader_1)
+	bin_1 := NewBin()
+	n, err := bin_1.FromStream(reader_1)
 	if err != nil || n != 5 || bin_1.data[0] != 0x01 || bin_1.data[2] != 0x03 {
 		t.Error()
 	}
@@ -299,7 +317,8 @@ func TestBin(t *testing.T) {
 	// 02 err
 	// expect err
 	reader_2 := bytes.NewReader(testBytes_2)
-	_, _, err = NewBin().FromStream(reader_2)
+	bin_2 := NewBin()
+	_, err = bin_2.FromStream(reader_2)
 	if err == nil {
 		t.Error()
 	}

@@ -1,3 +1,9 @@
-改变包引用结构
+properties conf
 
-设置types包，实现MQTT相关数据类型
+properties to stream
+
+properties test
+
+connect to stream
+
+dial tcp
