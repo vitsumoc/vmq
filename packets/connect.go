@@ -1,6 +1,7 @@
 package packets
 
 import (
+	"bytes"
 	"io"
 
 	t "github.com/vitsumoc/vmq/types"
@@ -116,87 +117,74 @@ func NewConnectPacket(cc *ConnectConf) *CONNECT_PACKET {
 }
 
 func (c *CONNECT_PACKET) ToStream(output io.Writer) (int, error) {
-	var length, n int
 	var err error
+	var buffer = bytes.NewBuffer(nil)
 	// fix header
-	n, err = c.FixHeader.PacketType.ToStream(output)
+	_, err = c.FixHeader.PacketType.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
-	n, err = c.FixHeader.RemainingLength.ToStream(output)
+	_, err = c.FixHeader.RemainingLength.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
 
 	// variable header
-	n, err = c.VariableHeader.ProtocolName.ToStream(output)
+	_, err = c.VariableHeader.ProtocolName.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
-	n, err = c.VariableHeader.ProtocolLevel.ToStream(output)
+	_, err = c.VariableHeader.ProtocolLevel.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
-	n, err = c.VariableHeader.ConnectFlags.ToStream(output)
+	_, err = c.VariableHeader.ConnectFlags.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
-	n, err = c.VariableHeader.KeepAlive.ToStream(output)
+	_, err = c.VariableHeader.KeepAlive.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
-	n, err = c.VariableHeader.Properties.ToStream(output)
+	_, err = c.VariableHeader.Properties.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
 
 	// payload
-	n, err = c.Payload.ClientID.ToStream(output)
+	_, err = c.Payload.ClientID.ToStream(buffer)
 	if err != nil {
-		return length, err
+		return 0, err
 	}
-	length += n
 	// there is will
 	if c.VariableHeader.ConnectFlags.ToValue()&CONNECT_FLAG_WILLFLAG > 0x00 {
-		n, err = c.Payload.WillProperties.ToStream(output)
+		_, err = c.Payload.WillProperties.ToStream(buffer)
 		if err != nil {
-			return length, err
+			return 0, err
 		}
-		length += n
-		n, err = c.Payload.WillTopic.ToStream(output)
+		_, err = c.Payload.WillTopic.ToStream(buffer)
 		if err != nil {
-			return length, err
+			return 0, err
 		}
-		length += n
-		n, err = c.Payload.WillPayload.ToStream(output)
+		_, err = c.Payload.WillPayload.ToStream(buffer)
 		if err != nil {
-			return length, err
+			return 0, err
 		}
-		length += n
 	}
 	// there is username
 	if c.VariableHeader.ConnectFlags.ToValue()&CONNECT_FLAG_USERNAME > 0x00 {
-		n, err = c.Payload.UserName.ToStream(output)
+		_, err = c.Payload.UserName.ToStream(buffer)
 		if err != nil {
-			return length, err
+			return 0, err
 		}
-		length += n
 	}
 	// there is password
 	if c.VariableHeader.ConnectFlags.ToValue()&CONNECT_FLAG_PASSWORD > 0x00 {
-		n, err = c.Payload.Password.ToStream(output)
+		_, err = c.Payload.Password.ToStream(buffer)
 		if err != nil {
-			return length, err
+			return 0, err
 		}
-		length += n
 	}
-
-	return length, nil
+	// to stream
+	return output.Write(buffer.Bytes())
 }
