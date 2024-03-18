@@ -6,9 +6,10 @@ import "errors"
 type VMQ_STATUS int
 
 const (
-	STATUS_IDLE       VMQ_STATUS = iota // no net conn
-	STATUS_CONNECTING                   // no conn ack
-	STATUS_CONNECTED
+	STATUS_IDLE         VMQ_STATUS = iota // no net conn
+	STATUS_CONNECTING                     // no conn ack
+	STATUS_CONNECTED                      // recive connack
+	STATUS_DISCONNECTED                   // disconnected
 )
 
 func (v *vmq) setStatus(s VMQ_STATUS) error {
@@ -20,6 +21,11 @@ func (v *vmq) setStatus(s VMQ_STATUS) error {
 	// connecting => connected
 	if v.status == STATUS_CONNECTING && s == STATUS_CONNECTED {
 		v.status = STATUS_CONNECTED
+		return nil
+	}
+	// => STATUS_DISCONNECTED
+	if s == STATUS_DISCONNECTED {
+		v.status = STATUS_DISCONNECTED
 		return nil
 	}
 	// => idle (may cause by error)

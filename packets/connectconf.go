@@ -11,8 +11,8 @@ type ConnectConf struct {
 	cfUsername   bool
 
 	// variable header
-	keepAlive  uint16
-	properties PROPERTIES
+	keepAlive         uint16
+	connectProperties PROPERTIES
 
 	// payload
 	clientID       string
@@ -25,20 +25,20 @@ type ConnectConf struct {
 
 func NewConnectConf() *ConnectConf {
 	return &ConnectConf{
-		cfCleanStart:   false,
-		cfWillFlag:     false,
-		cfWillQos:      0,
-		cfWillRetain:   false,
-		cfPassword:     false,
-		cfUsername:     false,
-		keepAlive:      0,
-		properties:     PROPERTIES{},
-		clientID:       "",
-		willProperties: PROPERTIES{},
-		willTopic:      "",
-		willPayload:    []byte{},
-		username:       "",
-		password:       []byte{},
+		cfCleanStart:      false,
+		cfWillFlag:        false,
+		cfWillQos:         0,
+		cfWillRetain:      false,
+		cfPassword:        false,
+		cfUsername:        false,
+		keepAlive:         0,
+		connectProperties: *NewProperties(),
+		clientID:          "",
+		willProperties:    *NewProperties(),
+		willTopic:         "",
+		willPayload:       []byte{},
+		username:          "",
+		password:          []byte{},
 	}
 }
 
@@ -69,8 +69,12 @@ func (cc *ConnectConf) SetKeepAlive(keepAlive uint16) {
 	cc.keepAlive = keepAlive
 }
 
-func (cc *ConnectConf) SetProperties(pp *PROPERTIES) {
-	cc.properties = *pp
+func (cc *ConnectConf) SetConnectProperties(pp *PROPERTIES) {
+	cc.connectProperties = *pp
+}
+
+func (cc *ConnectConf) SetProperty(key MQTT_PROPERTY_KEY, v1 any, v2 any) error {
+	return cc.connectProperties.SetProperty(key, v1, v2)
 }
 
 func (cc *ConnectConf) SetClientID(clientID string) {

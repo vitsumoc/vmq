@@ -28,11 +28,11 @@ type CONNECT_FIX_HEADER struct {
 }
 
 type CONNECT_VARIABLE_HEADER struct {
-	ProtocolName  t.MQTT_UTF8
-	ProtocolLevel t.MQTT_BYTE
-	ConnectFlags  t.MQTT_BYTE
-	KeepAlive     t.MQTT_U16
-	Properties    PROPERTIES
+	ProtocolName      t.MQTT_UTF8
+	ProtocolLevel     t.MQTT_BYTE
+	ConnectFlags      t.MQTT_BYTE
+	KeepAlive         t.MQTT_U16
+	ConnectProperties PROPERTIES
 }
 
 type CONNECT_PAYLOAD struct {
@@ -44,7 +44,7 @@ type CONNECT_PAYLOAD struct {
 	Password       t.MQTT_BIN
 }
 
-func NewConnectPacket(cc *ConnectConf) *CONNECT_PACKET {
+func NewConnectPacketFromConf(cc *ConnectConf) *CONNECT_PACKET {
 	packet := CONNECT_PACKET{}
 	// fix header
 	packet.FixHeader.PacketType.FromValue(byte(PACKET_TYPE_CONNECT))
@@ -85,9 +85,9 @@ func NewConnectPacket(cc *ConnectConf) *CONNECT_PACKET {
 	remainingLen += packet.VariableHeader.ConnectFlags.Length()
 	packet.VariableHeader.KeepAlive.FromValue(cc.keepAlive)
 	remainingLen += packet.VariableHeader.KeepAlive.Length()
-	packet.VariableHeader.Properties = cc.properties
-	remainingLen += packet.VariableHeader.Properties.PropertyLength.Length()
-	remainingLen += packet.VariableHeader.Properties.PropertyLength.ToValue()
+	packet.VariableHeader.ConnectProperties = cc.connectProperties
+	remainingLen += packet.VariableHeader.ConnectProperties.PropertyLength.Length()
+	remainingLen += packet.VariableHeader.ConnectProperties.PropertyLength.ToValue()
 
 	// payload
 	packet.Payload.ClientID.FromValue(cc.clientID)
@@ -146,7 +146,7 @@ func (c *CONNECT_PACKET) ToStream(output io.Writer) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	_, err = c.VariableHeader.Properties.ToStream(buffer)
+	_, err = c.VariableHeader.ConnectProperties.ToStream(buffer)
 	if err != nil {
 		return 0, err
 	}

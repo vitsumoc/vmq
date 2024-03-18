@@ -6,8 +6,8 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"time"
 
+	"github.com/vitsumoc/vmq/packets"
 	p "github.com/vitsumoc/vmq/packets"
 	t "github.com/vitsumoc/vmq/types"
 )
@@ -22,6 +22,7 @@ type vmq struct {
 	// packets with conf info
 	packetConn    *p.CONNECT_PACKET
 	packetConnAck *p.CONNACK_PACKET
+	packetDisconn *p.DISCONNECT_PACKET
 }
 
 func New(name string, network string, addr string, port int) *vmq {
@@ -37,7 +38,7 @@ func New(name string, network string, addr string, port int) *vmq {
 
 func (v *vmq) Connect(cc *p.ConnectConf) error {
 	if v.status != STATUS_IDLE {
-		return errors.New("vmq has connected")
+		return errors.New("vmq status error: has connected")
 	}
 	// dial network
 	var err error
@@ -55,7 +56,7 @@ func (v *vmq) Connect(cc *p.ConnectConf) error {
 	go onData(v)
 
 	// send connect
-	v.packetConn = p.NewConnectPacket(cc)
+	v.packetConn = p.NewConnectPacketFromConf(cc)
 	_, err = v.packetConn.ToStream(v.conn)
 	if err != nil {
 		v.conn.Close()
@@ -70,11 +71,13 @@ func onData(v *vmq) {
 	packetType := t.NewByte()
 	remainingLength := t.NewVarInt()
 	for {
-		time.Sleep(LISTEN_INTERVAL)
 		// read fix header: PacketType + RemainingLength
 		_, err := packetType.FromStream(v.conn)
+		// EOF means the server is disconnected
 		if err == io.EOF {
-			continue
+			v.conn.Close()
+			v.setStatus(STATUS_DISCONNECTED)
+			break
 		} else if err != nil {
 			v.conn.Close()
 			v.setStatus(STATUS_IDLE)
@@ -109,10 +112,42 @@ func recPacket(v *vmq, packetType *t.MQTT_BYTE, remainingLength *t.MQTT_VAR_INT)
 		// handle connACK
 		return onConnAck(v, ca)
 	}
+	if packetType.ToValue() == byte(p.PACKET_TYPE_DISCONNECT) {
+		dc := p.NewDisconnectPacket(packetType, remainingLength)
+		_, err := dc.FromStream(v.conn)
+		if err != nil {
+			return err
+		}
+		// handle connACK
+		return onDisconn(v, dc)
+	}
 	return errors.New("can't metch packet type")
 }
 
+func (v *vmq) Disconnect(dc *packets.DisconnectConf) error {
+	if v.status != STATUS_CONNECTED {
+		return errors.New("vmq status error: not connected")
+	}
+
+	v.packetDisconn = p.NewDisconnectPacketFromConf(dc)
+	_, err := v.packetDisconn.ToStream(v.conn)
+	if err != nil {
+		v.conn.Close()
+		return err
+	}
+	err = v.setStatus(STATUS_DISCONNECTED)
+	if err != nil {
+		v.conn.Close()
+		return err
+	}
+
+	return nil
+}
+
 func onConnAck(v *vmq, ca *p.CONNACK_PACKET) error {
+	if v.status != STATUS_CONNECTING {
+		return errors.New("vmq status error: not connecting")
+	}
 	// error check
 	if ca.VariableHeader.ConnectReasonCode.ToValue() >= byte(p.RC_UNSPECIFIED_ERROR) {
 		return fmt.Errorf("connack error, rc is:%v", ca.VariableHeader.ConnectReasonCode.ToValue())
@@ -126,9 +161,21 @@ func onConnAck(v *vmq, ca *p.CONNACK_PACKET) error {
 	return nil
 }
 
-// func (*vmq) Disconnect(*packets.DISCONNECT_PACKET) {
-
-// }
+func onDisconn(v *vmq, dc *packets.DISCONNECT_PACKET) error {
+	if v.status != STATUS_CONNECTED {
+		return errors.New("vmq status error: not connected")
+	}
+	v.packetDisconn = dc
+	err := v.conn.Close()
+	if err != nil {
+		return err
+	}
+	err = v.setStatus(STATUS_DISCONNECTED)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // func (*vmq) Publish(*packets.PUBLISH_PACKET) {
 
