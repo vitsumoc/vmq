@@ -8,21 +8,21 @@ import (
 )
 
 type PROPERTIES struct {
-	PropertyLength *t.MQTT_VAR_INT              // length of Properties + UserProperties, not self
-	Properties     map[*t.MQTT_BYTE]t.MQTT_TYPE // any types of MQTT_*, depending on key byte
-	UserProperties []*t.MQTT_UTF8_PAIR          // The User Property is allowed to appear multiple times
+	PropertyLength t.MQTT_VAR_INT              // length of Properties + UserProperties, not self
+	Properties     map[t.MQTT_BYTE]t.MQTT_TYPE // any types of MQTT_*, depending on key byte
+	UserProperties []t.MQTT_UTF8_PAIR          // The User Property is allowed to appear multiple times
 }
 
 func NewProperties() *PROPERTIES {
 	return &PROPERTIES{
-		PropertyLength: t.NewVarInt(),
-		Properties:     make(map[*t.MQTT_BYTE]t.MQTT_TYPE, 0),
-		UserProperties: make([]*t.MQTT_UTF8_PAIR, 0),
+		PropertyLength: *t.NewVarInt(),
+		Properties:     make(map[t.MQTT_BYTE]t.MQTT_TYPE, 0),
+		UserProperties: make([]t.MQTT_UTF8_PAIR, 0),
 	}
 }
 
 func (p *PROPERTIES) SetProperty(key MQTT_PROPERTY_KEY, v1 any, v2 any) error {
-	pk := t.NewByte().FromValue(byte(key))
+	pk := *t.NewByte().FromValue(byte(key))
 	if key == PROPERTY_PAYLOAD_FORMAT_INDICATOR ||
 		key == PROPERTY_REQUEST_PROBLEM_INFORMATION ||
 		key == PROPERTY_REQUEST_RESPONSE_INFORMATION ||
@@ -94,7 +94,7 @@ func (p *PROPERTIES) SetProperty(key MQTT_PROPERTY_KEY, v1 any, v2 any) error {
 		if err != nil {
 			return errors.New("SetProperty value error")
 		}
-		p.UserProperties = append(p.UserProperties, pv)
+		p.UserProperties = append(p.UserProperties, *pv)
 	} else {
 		return errors.New("SetProperty key error")
 	}
@@ -117,7 +117,7 @@ func (p *PROPERTIES) FromStream(input io.Reader) (int, error) {
 	length := varlength.ToValue() + varlength.Length()
 	// read the data need to consider type
 	for p.Length() < length {
-		pk := t.NewByte()
+		pk := *t.NewByte()
 		_, err := pk.FromStream(input)
 		if err != nil {
 			return 0, errors.New("PROPERTIES parse error")
@@ -184,7 +184,7 @@ func (p *PROPERTIES) FromStream(input io.Reader) (int, error) {
 			if err != nil {
 				return 0, errors.New("PROPERTIES parse error")
 			}
-			p.UserProperties = append(p.UserProperties, utf8p)
+			p.UserProperties = append(p.UserProperties, *utf8p)
 		} else {
 			return 0, errors.New("GetProperty key error")
 		}

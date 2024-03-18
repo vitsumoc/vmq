@@ -81,7 +81,7 @@ func TestDisconnByServer(test *testing.T) {
 	if err != nil {
 		test.Error()
 	}
-	// Manually kick out on the server side
+	// keep alive 10, so when x > 15, server will send disconn (time out)
 	for x := 0; x < 20; x++ {
 		time.Sleep(1 * time.Second)
 		fmt.Println(v.status)
