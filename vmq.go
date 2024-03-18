@@ -7,7 +7,6 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/vitsumoc/vmq/packets"
 	p "github.com/vitsumoc/vmq/packets"
 	t "github.com/vitsumoc/vmq/types"
 )
@@ -124,7 +123,7 @@ func recPacket(v *vmq, packetType *t.MQTT_BYTE, remainingLength *t.MQTT_VAR_INT)
 	return errors.New("can't metch packet type")
 }
 
-func (v *vmq) Disconnect(dc *packets.DisconnectConf) error {
+func (v *vmq) Disconnect(dc *p.DisconnectConf) error {
 	if v.status != STATUS_CONNECTED {
 		return errors.New("vmq status error: not connected")
 	}
@@ -161,7 +160,7 @@ func onConnAck(v *vmq, ca *p.CONNACK_PACKET) error {
 	return nil
 }
 
-func onDisconn(v *vmq, dc *packets.DISCONNECT_PACKET) error {
+func onDisconn(v *vmq, dc *p.DISCONNECT_PACKET) error {
 	if v.status != STATUS_CONNECTED {
 		return errors.New("vmq status error: not connected")
 	}
