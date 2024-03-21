@@ -5,7 +5,7 @@ type ConnectConf struct {
 	// connect flags
 	cfCleanStart bool
 	cfWillFlag   bool
-	cfWillQos    int
+	cfWillQos    CONNECT_FLAG_WILLQOS
 	cfWillRetain bool
 	cfPassword   bool
 	cfUsername   bool
@@ -46,7 +46,7 @@ func (cc *ConnectConf) SetCleanStart(b bool) {
 	cc.cfCleanStart = b
 }
 
-func (cc *ConnectConf) SetWill(qos int, retain bool, properties PROPERTIES, topic string, payload []byte) {
+func (cc *ConnectConf) SetWill(qos CONNECT_FLAG_WILLQOS, retain bool, properties PROPERTIES, topic string, payload []byte) {
 	cc.cfWillFlag = true
 	cc.cfWillQos = qos
 	cc.cfWillRetain = retain

@@ -1,7 +1,7 @@
-要做一个 onConnect 的回调 (要考虑成功和失败是否分成两个函数 onConnectFail, 或是用参数)
+完成publish qos0
 
-要做 onDisconnect 的回调
+测试，提交，告一段落
 
-要做意外断开的回调，要给意外断开想个名字
+通过文档实现 session
 
-然后开始做发布订阅
+优化对外接口

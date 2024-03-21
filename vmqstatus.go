@@ -21,17 +21,20 @@ func (v *vmq) setStatus(s VMQ_STATUS) error {
 	// connecting => connected
 	if v.status == STATUS_CONNECTING && s == STATUS_CONNECTED {
 		v.status = STATUS_CONNECTED
+		v.onConnect(v)
 		return nil
 	}
 	// => STATUS_DISCONNECTED
 	if s == STATUS_DISCONNECTED {
 		v.status = STATUS_DISCONNECTED
+		v.onDisConnect(v)
 		return nil
 	}
 	// => idle (may cause by error)
 	if s == STATUS_IDLE {
 		// TODO clean some data here
 		v.status = STATUS_IDLE
+		v.onError(v)
 		return nil
 	}
 	return errors.New("vmq status error")

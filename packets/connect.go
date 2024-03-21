@@ -7,11 +7,13 @@ import (
 	t "github.com/vitsumoc/vmq/types"
 )
 
+type CONNECT_FLAG_WILLQOS byte
+
 const CONNECT_FLAG_CLEANSTART byte = 0x02
 const CONNECT_FLAG_WILLFLAG byte = 0x04
-const CONNECT_FLAG_WILLQOS_0 byte = 0x00
-const CONNECT_FLAG_WILLQOS_1 byte = 0x08
-const CONNECT_FLAG_WILLQOS_2 byte = 0x10
+const CONNECT_FLAG_WILLQOS_0 CONNECT_FLAG_WILLQOS = 0x00
+const CONNECT_FLAG_WILLQOS_1 CONNECT_FLAG_WILLQOS = 0x08
+const CONNECT_FLAG_WILLQOS_2 CONNECT_FLAG_WILLQOS = 0x10
 const CONNECT_FLAG_WILLRETAIN byte = 0x20
 const CONNECT_FLAG_PASSWORD byte = 0x40
 const CONNECT_FLAG_USERNAME byte = 0x80
@@ -63,15 +65,7 @@ func NewConnectPacketFromConf(cc *ConnectConf) *CONNECT_PACKET {
 	if cc.cfWillFlag {
 		cf = cf | CONNECT_FLAG_WILLFLAG
 	}
-	if cc.cfWillQos == 0 {
-		cf = cf | CONNECT_FLAG_WILLQOS_0
-	}
-	if cc.cfWillQos == 1 {
-		cf = cf | CONNECT_FLAG_WILLQOS_1
-	}
-	if cc.cfWillQos == 2 {
-		cf = cf | CONNECT_FLAG_WILLQOS_2
-	}
+	cf = cf | byte(cc.cfWillQos)
 	if cc.cfWillRetain {
 		cf = cf | CONNECT_FLAG_WILLRETAIN
 	}
